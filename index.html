@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Unpaid Leave Tracker</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =====================================
+     Login Screen
+====================================== -->
+
+<div
+    class="login-screen"
+    id="loginScreen"
+>
+
+    <div class="login-card">
+
+        <h1>Unpaid Leave Tracker</h1>
+
+        <p>
+            Manager / HR Access
+        </p>
+
+
+        <div class="form-group">
+
+            <label for="loginUsername">
+    Email Address
+</label>
+
+            <input
+                type="text"
+                id="loginUsername"
+                placeholder="Enter email address"
+                autocomplete="username"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="loginPassword">
+                Password
+            </label>
+
+            <input
+                type="password"
+                id="loginPassword"
+                placeholder="Enter password"
+                autocomplete="current-password"
+            >
+
+        </div>
+
+
+        <button
+            type="button"
+            id="loginButton"
+        >
+            Login
+        </button>
+
+
+        <p
+            class="login-message"
+            id="loginMessage"
+        ></p>
+
+    </div>
+
+</div>
+
+    <div
+    class="container"
+    id="trackerApp"
+    style="display: none;"
+>
+
+        <header class="page-header">
+
+    <div>
+        <h1>Unpaid Leave Tracker</h1>
+        <p>
+            Track late arrivals and calculate unpaid leave for payroll.
+        </p>
+    </div>
+
+    <button
+    type="button"
+    id="manageUsersButton"
+>
+    Manage Users
+</button>
+
+    <button
+        type="button"
+        id="logoutButton"
+    >
+        Logout
+    </button>
+
+</header>
+
+<!-- =====================================
+     User Management
+====================================== -->
+
+<section
+    class="card"
+    id="userManagementSection"
+    style="display: none;"
+>
+
+    <div class="section-heading">
+
+        <div>
+            <h2>Manage Users</h2>
+            <p>
+                Add and manage Manager / HR access.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            id="closeUserManagementButton"
+        >
+            Close
+        </button>
+
+    </div>
+
+
+    <div class="form-grid user-management-form">
+
+        <div class="form-group">
+
+            <label for="newUserName">
+                Full Name
+            </label>
+
+            <input
+                type="text"
+                id="newUserName"
+                placeholder="Enter full name"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="newUserEmail">
+                Email Address
+            </label>
+
+            <input
+                type="email"
+                id="newUserEmail"
+                placeholder="Enter email address"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="newUserRole">
+                Role
+            </label>
+
+            <select id="newUserRole">
+
+                <option value="Manager">
+                    Manager
+                </option>
+
+                <option value="HR">
+                    HR
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="newUserPassword">
+                Temporary Password
+            </label>
+
+            <input
+                type="password"
+                id="newUserPassword"
+                placeholder="Enter temporary password"
+            >
+
+        </div>
+
+    </div>
+
+
+    <button
+        type="button"
+        id="createUserButton"
+    >
+        Create User
+    </button>
+
+
+    <p
+        id="userManagementMessage"
+        class="login-message"
+    ></p>
+
+    <div class="table-wrapper">
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="userManagementTableBody">
+
+            <tr>
+                <td colspan="4" class="empty-row">
+                    No users loaded.
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</section>
+
+
+        <!-- =====================================
+             Employee Details
+        ====================================== -->
+
+        <section class="card">
+
+    <h2>Employee</h2>
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label for="employeeSelect">
+                Select Employee
+            </label>
+
+            <select id="employeeSelect">
+                <option value="">
+                    Select an employee
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+    <label>
+        Employee Management
+    </label>
+
+    <div class="employee-actions">
+
+        <button
+            type="button"
+            id="addEmployeeButton"
+        >
+            + Add New Employee
+        </button>
+
+        <button
+            type="button"
+            id="editEmployeeButton"
+        >
+            Edit Employee
+        </button>
+
+        <button
+            type="button"
+            id="deleteEmployeeButton"
+        >
+            Delete Employee
+        </button>
+
+    </div>
+</div>
+
+    </div>
+
+</section>
+
+
+<section
+    class="card"
+    id="employeeFormCard"
+    style="display: none;"
+>
+
+    <h2 id="employeeFormTitle">
+        Add Employee
+    </h2>
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label for="employeeName">
+                Employee Name
+            </label>
+
+            <input
+                type="text"
+                id="employeeName"
+                placeholder="Employee name"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label for="employeeNumber">
+                Employee Number
+            </label>
+
+            <input
+                type="text"
+                id="employeeNumber"
+                placeholder="Employee number"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label for="employeeStartTime">
+                Start Time
+            </label>
+
+            <input
+                type="time"
+                id="employeeStartTime"
+                value="08:00"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label for="employeeEndTime">
+                End Time
+            </label>
+
+            <input
+                type="time"
+                id="employeeEndTime"
+                value="16:30"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label for="employeeLunchStart">
+                Lunch Start
+            </label>
+
+            <input
+                type="time"
+                id="employeeLunchStart"
+                value="12:30"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label for="employeeLunchEnd">
+                Lunch End
+            </label>
+
+            <input
+                type="time"
+                id="employeeLunchEnd"
+                value="13:00"
+            >
+        </div>
+
+    </div>
+
+
+    <button
+        type="button"
+        id="saveEmployeeButton"
+    >
+        Save Employee
+    </button>
+
+    <button
+        type="button"
+        id="cancelEmployeeButton"
+    >
+        Cancel
+    </button>
+
+</section>
+
+
+        <!-- =====================================
+             Normal Working Hours
+        ====================================== -->
+
+        
+
+
+        <!-- =====================================
+             Record Late Arrival
+        ====================================== -->
+
+        <section class="card">
+
+            <h2>Record Arrival</h2>
+
+            <div class="form-grid">
+
+    <div class="form-group">
+        <label for="entryType">
+            Entry Type
+        </label>
+
+        <select id="entryType">
+            <option value="late">Late Arrival</option>
+            <option value="fullDay">Full Day Unpaid</option>
+        </select>
+    </div>
+
+
+    <div class="form-group">
+        <label for="attendanceDate">
+            Date
+        </label>
+
+        <input
+            type="date"
+            id="attendanceDate"
+        >
+    </div>
+
+                    
+                <div class="form-group">
+                    <label for="actualArrival">
+                        Actual Arrival Time
+                    </label>
+
+                    <input
+                        type="time"
+                        id="actualArrival"
+                    >
+                </div>
+
+
+                <div class="form-group full-width">
+                    <label for="notes">
+                        Notes / Reason
+                    </label>
+
+                    <input
+                        type="text"
+                        id="notes"
+                        placeholder="Optional reason for late arrival"
+                    >
+                </div>
+
+            </div>
+
+
+            <button id="saveEntryButton">
+                Save Entry
+            </button>
+
+        </section>
+
+
+        <!-- =====================================
+             Monthly Payroll Summary
+        ====================================== -->
+
+        <section class="card payroll-card">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Payroll Summary</h2>
+                    <p>Monthly unpaid leave totals.</p>
+                </div>
+
+                <input
+                    type="month"
+                    id="monthFilter"
+                >
+
+            </div>
+
+
+            <div class="summary-grid">
+
+    <div class="summary-box">
+        <span>Days Late</span>
+        <strong id="daysLate">
+            0
+        </strong>
+    </div>
+
+
+    <div class="summary-box">
+        <span>Late Arrival Unpaid</span>
+        <strong id="totalLateTime">
+            0h 00m
+        </strong>
+    </div>
+
+
+    <div class="summary-box">
+        <span>Full Days Unpaid</span>
+        <strong id="fullDaysUnpaid">
+            0
+        </strong>
+    </div>
+
+
+    <div class="summary-box">
+        <span>Full-Day Unpaid Hours</span>
+        <strong id="fullDayUnpaidHours">
+            0h 00m
+        </strong>
+    </div>
+
+
+    <div class="summary-box">
+        <span>Total Unpaid Hours</span>
+        <strong id="unpaidHours">
+            0.00
+        </strong>
+    </div>
+
+
+    <div class="summary-box highlight">
+        <span>Total Unpaid Leave To Submit</span>
+        <strong id="unpaidDays">
+            0.00 days
+        </strong>
+    </div>
+
+</div>
+
+        </section>
+
+        <!-- =====================================
+     All Employees Payroll Summary
+====================================== -->
+
+
+
+<section
+    class="card"
+    id="allEmployeesPayrollSection"
+>
+
+<div class="print-report-header">
+
+    <div class="report-title-section">
+
+        <h1>
+            Unpaid Leave Payroll Report
+        </h1>
+
+        <p>
+            Monthly unpaid leave summary for payroll processing
+        </p>
+
+    </div>
+
+    <div class="report-meta">
+
+        <div>
+            <span>
+                Payroll Period
+            </span>
+
+            <strong id="printPayrollPeriod">
+                -
+            </strong>
+        </div>
+
+        <div>
+            <span>
+                Generated
+            </span>
+
+            <strong id="printGeneratedDate">
+                -
+            </strong>
+        </div>
+
+        <div>
+            <span>
+                Prepared By
+            </span>
+
+            <strong id="preparedByName">
+                -
+            </strong>
+        </div>
+
+    </div>
+
+</div>
+
+    <div class="section-heading">
+
+    <div>
+        <h2>All Employees Payroll Summary</h2>
+
+        <p>
+            Payroll Period:
+            <strong id="allEmployeesPayrollPeriod">
+                -
+            </strong>
+        </p>
+    </div>
+
+    <button
+        type="button"
+        id="printPayrollButton"
+    >
+        Print Payroll Report
+    </button>
+
+</div>
+
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Employee No.</th>
+                    <th>Days Late</th>
+                    <th>Late Time</th>
+                    <th>Full Unpaid Days</th>
+                    <th>Total Unpaid Hours</th>
+                    <th>Unpaid Leave</th>
+                </tr>
+            </thead>
+
+            <tbody id="allEmployeesSummaryBody">
+
+                <tr>
+                    <td colspan="7" class="empty-row">
+                        No payroll data for this month.
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+        
+
+</section>
+
+
+        <!-- =====================================
+             Attendance History
+        ====================================== -->
+
+        <section class="card">
+
+            <h2>Late Arrival History</h2>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Date</th>
+                            <th>Expected</th>
+                            <th>Actual</th>
+                            <th>Late By</th>
+                            <th>Unpaid Hours</th>
+                            <th>Unpaid Days</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="attendanceTableBody">
+
+                        <tr>
+                            <td colspan="8" class="empty-row">
+                                No entries recorded yet.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </div>
+
+        </div>
+
+
+    <!-- =========================================
+         Edit Entry Modal
+    ========================================== -->
+
+    <div id="editEntryModal" class="modal-overlay">
+
+        <div class="modal-card">
+
+            <h2>Edit Entry</h2>
+
+            <label for="editEntryDate">
+                Date
+            </label>
+
+            <input
+                type="date"
+                id="editEntryDate"
+            >
+
+
+            <label for="editEntryType">
+                Entry Type
+            </label>
+
+            <select id="editEntryType">
+
+                <option value="late">
+                    Late Arrival
+                </option>
+
+                <option value="fullDay">
+                    Full Day Unpaid
+                </option>
+
+            </select>
+
+
+            <div id="editArrivalGroup">
+
+                <label for="editActualArrival">
+                    Actual Arrival
+                </label>
+
+                <input
+                    type="time"
+                    id="editActualArrival"
+                >
+
+            </div>
+
+
+            <label for="editEntryNotes">
+                Notes
+            </label>
+
+            <textarea
+                id="editEntryNotes"
+                rows="4"
+            ></textarea>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    id="cancelEditEntryButton"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    id="updateEntryButton"
+                >
+                    Update Entry
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
+
+    
