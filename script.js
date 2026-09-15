@@ -88,6 +88,66 @@ const updateEntryButton =
 const monthFilterInput =
     document.getElementById("monthFilter");
 
+    // =========================================
+// Main Navigation
+// =========================================
+
+const unpaidLeaveNavButton =
+    document.getElementById("unpaidLeaveNavButton");
+
+const carWashNavButton =
+    document.getElementById("carWashNavButton");
+
+const unpaidLeaveSection =
+    document.getElementById("unpaidLeaveSection");
+
+const carWashSection =
+    document.getElementById("carWashSection");
+
+    const carWashEmployeeNameInput =
+    document.getElementById("carWashEmployeeName");
+
+const carWashDateInput =
+    document.getElementById("carWashDate");
+
+const carWashVehicleTypeInput =
+    document.getElementById("carWashVehicleType");
+
+const carWashAmountInput =
+    document.getElementById("carWashAmount");
+
+const saveCarWashButton =
+    document.getElementById("saveCarWashButton");
+
+    const carWashTableBody =
+    document.getElementById("carWashTableBody");
+
+    const carWashPayrollMonthInput =
+    document.getElementById("carWashPayrollMonth");
+
+    const carWashHistoryMonthInput =
+    document.getElementById("carWashHistoryMonth");
+
+const carWashPayrollTableBody =
+    document.getElementById("carWashPayrollTableBody");
+
+    const carWashTotalWashes =
+    document.getElementById("carWashTotalWashes");
+
+const carWashOutstandingWashes =
+    document.getElementById("carWashOutstandingWashes");
+
+const carWashTotalValue =
+    document.getElementById("carWashTotalValue");
+
+const carWashOutstandingValue =
+    document.getElementById("carWashOutstandingValue");
+
+    const markAllCarWashesLoadedButton =
+    document.getElementById(
+        "markAllCarWashesLoadedButton"
+    );
+
 const daysLateElement =
     document.getElementById("daysLate");
 
@@ -158,6 +218,8 @@ let attendanceEntries =
     JSON.parse(
         localStorage.getItem("unpaidLeaveEntries")
     ) || [];
+
+    let carWashEntries = [];
 
 let editingEmployeeId = null;
 let editingEntryId = null;
@@ -405,6 +467,8 @@ function restoreLoginSession() {
                 await loadEmployeesFromFirestore();
 
                 await loadAttendanceEntriesFromFirestore();
+
+                await loadCarWashesFromFirestore();
 
             const preparedByName =
                 document.getElementById(
@@ -876,6 +940,12 @@ function setDefaultDates() {
 
     monthFilterInput.value =
         `${year}-${month}`;
+
+        carWashPayrollMonthInput.value =
+    `${year}-${month}`;
+
+    carWashHistoryMonthInput.value =
+    `${year}-${month}`;
 }
 
 setDefaultDates();
@@ -1146,6 +1216,1011 @@ async function loadAttendanceEntriesFromFirestore() {
         console.error(
             "Load unpaid leave entries error:",
             error
+        );
+    }
+}
+
+// =============================================
+// Get Car Wash Payroll Period
+// =============================================
+
+function getCarWashPayrollPeriod(washDate) {
+
+    const date =
+        new Date(`${washDate}T00:00:00`);
+
+    let year =
+        date.getFullYear();
+
+    let month =
+        date.getMonth();
+
+    const day =
+        date.getDate();
+
+    // Car washes from the 23rd onward
+    // default to the following payroll month
+    if (day > 22) {
+
+        month++;
+
+        if (month > 11) {
+
+            month = 0;
+            year++;
+        }
+    }
+
+    return (
+        `${year}-` +
+        `${String(month + 1).padStart(2, "0")}`
+    );
+}
+
+// =============================================
+// Load Car Washes From Firestore
+// =============================================
+
+async function loadCarWashesFromFirestore() {
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("carWashes")
+                .get();
+
+        carWashEntries = [];
+
+snapshot.forEach(doc => {
+
+    carWashEntries.push({
+        id: doc.id,
+        ...doc.data()
+    });
+});
+
+        carWashEntries.sort(
+    (a, b) =>
+        new Date(b.washDate) -
+        new Date(a.washDate)
+);
+
+        renderCarWashHistory(
+    carWashEntries
+);
+
+renderCarWashPayrollSummary();
+
+    } catch (error) {
+
+        console.error(
+            "Load car washes error:",
+            error
+        );
+
+        carWashTableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    class="empty-row"
+                >
+                    Unable to load car wash records.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// =============================================
+// Render Car Wash Payroll Summary
+// =============================================
+
+function renderCarWashPayrollSummary() {
+
+    const selectedMonth =
+        carWashPayrollMonthInput.value;
+
+    carWashPayrollTableBody.innerHTML =
+        "";
+
+    if (!selectedMonth) {
+
+        carWashPayrollTableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    class="empty-row"
+                >
+                    Please select a payroll month.
+                </td>
+            </tr>
+        `;
+
+                return;
+    }
+
+    const payrollEntries =
+        carWashEntries.filter(carWash => {
+
+            const payrollPeriod =
+                carWash.payrollPeriod ||
+                getCarWashPayrollPeriod(
+                    carWash.washDate
+                );
+
+                        return (
+                payrollPeriod ===
+                selectedMonth
+            );
+        });
+
+        if (payrollEntries.length === 0) {
+
+        carWashPayrollTableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    class="empty-row"
+                >
+                    No car washes for this payroll period.
+                </td>
+            </tr>
+        `;
+
+        carWashTotalWashes.textContent =
+    "0";
+
+carWashOutstandingWashes.textContent =
+    "0";
+
+carWashTotalValue.textContent =
+    "R0.00";
+
+carWashOutstandingValue.textContent =
+    "R0.00";
+
+        return;
+    }
+
+
+    const groupedEmployees = {};
+
+    payrollEntries.forEach(carWash => {
+
+        const employeeName =
+            carWash.employeeName.trim();
+
+        const employeeKey =
+            employeeName.toLowerCase();
+
+        if (!groupedEmployees[employeeKey]) {
+
+            groupedEmployees[employeeKey] = {
+                employeeName: employeeName,
+                numberOfWashes: 0,
+                outstandingWashes: 0,
+                totalAmount: 0,
+                outstandingAmount: 0,
+                loadedCount: 0
+            };
+        }
+
+                groupedEmployees[employeeKey].numberOfWashes++;
+
+        groupedEmployees[employeeKey].totalAmount +=
+            Number(carWash.amount) || 0;
+
+        if (carWash.loadedToPayroll) {
+
+    groupedEmployees[employeeKey].loadedCount++;
+
+} else {
+
+    groupedEmployees[employeeKey].outstandingWashes++;
+
+    groupedEmployees[employeeKey].outstandingAmount +=
+        Number(carWash.amount) || 0;
+}
+
+            });
+
+             const employeeSummary =
+        Object.values(groupedEmployees);  
+
+
+    employeeSummary.sort(
+    (a, b) =>
+        a.employeeName.localeCompare(
+            b.employeeName
+        )
+);
+
+employeeSummary.forEach(employee => {
+
+    const row =
+        document.createElement("tr");
+
+    const payrollStatus =
+        employee.loadedCount === 0
+            ? "Outstanding"
+            : employee.loadedCount ===
+              employee.numberOfWashes
+                ? "Loaded"
+                : "Partially Loaded";
+
+    row.innerHTML = `
+        <td>
+            ${employee.employeeName}
+        </td>
+
+        <td>
+            ${employee.numberOfWashes}
+        </td>
+
+        <td>
+    ${employee.outstandingWashes}
+</td>
+
+        <td>
+            R${employee.totalAmount.toFixed(2)}
+        </td>
+
+        <td>
+    R${employee.outstandingAmount.toFixed(2)}
+</td>
+
+        <td>
+    <span
+        class="payroll-status ${
+            payrollStatus === "Loaded"
+                ? "payroll-loaded"
+                : payrollStatus === "Partially Loaded"
+                    ? "payroll-partial"
+                    : "payroll-outstanding"
+        }"
+    >
+        ${payrollStatus}
+    </span>
+</td>
+
+<td>
+    ${
+        employee.outstandingWashes > 0
+            ? `
+                <button
+                    type="button"
+                    class="history-edit-button"
+                    onclick="markEmployeeCarWashesAsLoaded('${employee.employeeName}')"
+                >
+                    ${
+                        employee.loadedCount > 0
+                            ? "Mark Outstanding as Loaded"
+                            : "Mark as Loaded"
+                    }
+                </button>
+            `
+            : "-"
+    }
+</td>
+    `;
+
+    carWashPayrollTableBody.appendChild(
+        row
+    );
+});
+
+const totalWashes =
+    employeeSummary.reduce(
+        (total, employee) =>
+            total + employee.numberOfWashes,
+        0
+    );
+
+    const totalOutstandingWashes =
+    employeeSummary.reduce(
+        (total, employee) =>
+            total + employee.outstandingWashes,
+        0
+    );
+
+const totalAmount =
+    employeeSummary.reduce(
+        (total, employee) =>
+            total + employee.totalAmount,
+        0
+    );
+
+    const totalOutstandingAmount =
+    employeeSummary.reduce(
+        (total, employee) =>
+            total + employee.outstandingAmount,
+        0
+    );
+
+    carWashTotalWashes.textContent =
+    totalWashes;
+
+carWashOutstandingWashes.textContent =
+    totalOutstandingWashes;
+
+carWashTotalValue.textContent =
+    `R${totalAmount.toFixed(2)}`;
+
+carWashOutstandingValue.textContent =
+    `R${totalOutstandingAmount.toFixed(2)}`;
+
+    const outstandingCards =
+    document.querySelectorAll(
+        ".car-wash-summary-card.outstanding-card"
+    );
+
+outstandingCards.forEach(card => {
+
+    if (totalOutstandingWashes === 0) {
+        card.classList.add("clear-card");
+    } else {
+        card.classList.remove("clear-card");
+    }
+});
+
+    const totalRow =
+    document.createElement("tr");
+
+totalRow.classList.add(
+    "grand-total-row"
+);
+
+totalRow.innerHTML = `
+    <td>
+        <strong>GRAND TOTAL</strong>
+    </td>
+
+    <td>
+        <strong>${totalWashes}</strong>
+    </td>
+
+    <td>
+    <strong>${totalOutstandingWashes}</strong>
+</td>
+
+    <td>
+        <strong>R${totalAmount.toFixed(2)}</strong>
+    </td>
+
+    <td>
+    <strong>R${totalOutstandingAmount.toFixed(2)}</strong>
+</td>
+
+    <td>
+        -
+    </td>
+
+    <td>
+    -
+</td>
+`;
+
+carWashPayrollTableBody.appendChild(
+    totalRow
+);
+
+}
+
+// =============================================
+// Render Car Wash History
+// =============================================
+
+function renderCarWashHistory(carWashes) {
+
+    carWashTableBody.innerHTML =
+        "";
+
+        const selectedHistoryMonth =
+    carWashHistoryMonthInput.value;
+
+if (selectedHistoryMonth) {
+
+    carWashes =
+        carWashes.filter(carWash =>
+            carWash.washDate &&
+            carWash.washDate.startsWith(
+                selectedHistoryMonth
+            )
+        );
+}
+
+    if (carWashes.length === 0) {
+
+        carWashTableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    class="empty-row"
+                >
+                    No car washes recorded for this month.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    carWashes.forEach(carWash => {
+
+        const row =
+            document.createElement("tr");
+
+        const vehicleDisplay =
+            carWash.vehicleType === "small"
+                ? "Small Vehicle"
+                : "SUV / Large Vehicle";
+
+        const payrollStatus =
+            carWash.loadedToPayroll
+                ? "Loaded"
+                : "Outstanding";
+
+                const payrollPeriod =
+    carWash.payrollPeriod ||
+    getCarWashPayrollPeriod(
+        carWash.washDate
+    );
+
+        row.innerHTML = `
+
+            <td>
+                ${formatDate(carWash.washDate)}
+            </td>
+
+            <td>
+                ${carWash.employeeName}
+            </td>
+
+            <td>
+                ${vehicleDisplay}
+            </td>
+
+            <td>
+                R${Number(carWash.amount).toFixed(2)}
+            </td>
+
+            <td>
+    ${
+        new Date(
+            `${payrollPeriod}-01T00:00:00`
+        ).toLocaleDateString(
+            "en-ZA",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        )
+    }
+</td>
+
+            <td>
+    <span
+        class="payroll-status ${
+            carWash.loadedToPayroll
+                ? "payroll-loaded"
+                : "payroll-outstanding"
+        }"
+    >
+        ${payrollStatus}
+    </span>
+</td>
+
+            <td>
+    ${
+        carWash.loadedToPayroll
+            ? ""
+            : `
+                <button
+                    type="button"
+                    class="history-edit-button"
+                    onclick="changeCarWashPayrollPeriod('${carWash.id}')"
+                >
+                    Change Payroll Period
+                </button>
+            `
+    }
+
+    <button
+        type="button"
+        class="history-delete-button"
+        onclick="deleteCarWash('${carWash.id}')"
+    >
+        Delete
+    </button>
+</td>
+
+        `;
+
+        carWashTableBody.appendChild(
+            row
+        );
+    });
+}
+
+// =============================================
+// Change Car Wash Payroll Period
+// =============================================
+
+async function changeCarWashPayrollPeriod(id) {
+
+    try {
+
+        const carWashDocument =
+            await db
+                .collection("carWashes")
+                .doc(String(id))
+                .get();
+
+        if (!carWashDocument.exists) {
+
+            alert(
+                "Unable to find this car wash record."
+            );
+
+            return;
+        }
+
+        const carWash =
+            carWashDocument.data();
+
+        const currentPeriod =
+            carWash.payrollPeriod ||
+            getCarWashPayrollPeriod(
+                carWash.washDate
+            );
+
+        const newPeriod =
+            prompt(
+                "Enter the payroll period in YYYY-MM format:",
+                currentPeriod
+            );
+
+        if (newPeriod === null) {
+            return;
+        }
+
+        if (
+            !/^\d{4}-(0[1-9]|1[0-2])$/.test(
+                newPeriod
+            )
+        ) {
+
+            alert(
+                "Please enter the payroll period in YYYY-MM format, for example 2026-09."
+            );
+
+            return;
+        }
+
+        await db
+            .collection("carWashes")
+            .doc(String(id))
+            .update({
+                payrollPeriod:
+                    newPeriod
+            });
+
+        await loadCarWashesFromFirestore();
+
+        alert(
+            "Payroll period updated successfully."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Change car wash payroll period error:",
+            error
+        );
+
+        alert(
+            "Unable to change the payroll period."
+        );
+    }
+}
+
+// =============================================
+// Delete Car Wash
+// =============================================
+
+async function deleteCarWash(id) {
+
+    const carWash =
+        carWashEntries.find(
+            entry =>
+                String(entry.id) ===
+                String(id)
+        );
+
+    if (!carWash) {
+
+        alert(
+            "Unable to find this car wash record."
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            `Are you sure you want to delete this car wash?\n\n` +
+            `Employee: ${carWash.employeeName}\n` +
+            `Wash Date: ${formatDate(carWash.washDate)}\n` +
+            `Amount: R${Number(carWash.amount).toFixed(2)}\n\n` +
+            `This will permanently remove it from the Car Wash History and Payroll Summary.`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await db
+            .collection("carWashes")
+            .doc(String(id))
+            .delete();
+
+
+        await loadCarWashesFromFirestore();
+
+
+        alert(
+            "Car wash deleted successfully."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Delete car wash error:",
+            error
+        );
+
+
+        alert(
+            "Unable to delete the car wash. Please try again."
+        );
+    }
+}
+
+// =============================================
+// Mark Car Wash As Loaded
+// =============================================
+
+async function markCarWashAsLoaded(id) {
+
+    const confirmed =
+        confirm(
+            "Are you sure this car wash has been loaded to payroll?\n\n" +
+            "Once marked as loaded, it will be recorded as completed."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        const loggedInUser =
+            JSON.parse(
+                sessionStorage.getItem(
+                    "loggedInLeaveUser"
+                )
+            );
+
+        await db
+            .collection("carWashes")
+            .doc(String(id))
+            .update({
+
+                loadedToPayroll:
+                    true,
+
+                loadedToPayrollDate:
+                    new Date().toISOString(),
+
+                loadedBy:
+                    loggedInUser
+                        ? loggedInUser.name
+                        : "Unknown"
+
+            });
+
+        await loadCarWashesFromFirestore();
+
+        alert(
+            "Car wash marked as loaded to payroll."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Mark car wash as loaded error:",
+            error
+        );
+
+        alert(
+            "Unable to mark this car wash as loaded."
+        );
+    }
+}
+
+// =============================================
+// Mark Employee Car Washes As Loaded
+// =============================================
+
+async function markEmployeeCarWashesAsLoaded(
+    employeeName
+) {
+
+    const selectedMonth =
+        carWashPayrollMonthInput.value;
+
+    if (!selectedMonth) {
+
+        alert(
+            "Please select a payroll month."
+        );
+
+        return;
+    }
+
+    const outstandingWashes =
+        carWashEntries.filter(carWash => {
+
+            const payrollPeriod =
+                carWash.payrollPeriod ||
+                getCarWashPayrollPeriod(
+                    carWash.washDate
+                );
+
+            return (
+                carWash.employeeName
+                    .trim()
+                    .toLowerCase() ===
+                    employeeName
+                        .trim()
+                        .toLowerCase()
+                &&
+                payrollPeriod ===
+                    selectedMonth
+                &&
+                !carWash.loadedToPayroll
+            );
+        });
+
+    if (outstandingWashes.length === 0) {
+
+        alert(
+            "There are no outstanding car washes for this employee."
+        );
+
+        return;
+    }
+
+        const outstandingAmount =
+        outstandingWashes.reduce(
+            (total, carWash) =>
+                total +
+                (Number(carWash.amount) || 0),
+            0
+        );
+
+        
+
+        const confirmed =
+    confirm(
+        `Mark the following car washes as loaded to payroll?\n\n` +
+        `Employee: ${employeeName}\n` +
+        `Outstanding Washes: ${outstandingWashes.length}\n` +
+        `Outstanding Amount: R${outstandingAmount.toFixed(2)}\n\n` +
+        `Payroll Period: ${selectedMonth}`
+    );
+
+if (!confirmed) {
+    return;
+}
+
+try {
+
+    const loggedInUser =
+        JSON.parse(
+            sessionStorage.getItem(
+                "loggedInLeaveUser"
+            )
+        );
+
+    const batch =
+        db.batch();
+
+    outstandingWashes.forEach(carWash => {
+
+        const carWashRef =
+            db
+                .collection("carWashes")
+                .doc(String(carWash.id));
+
+        batch.update(
+            carWashRef,
+            {
+                loadedToPayroll: true,
+                loadedToPayrollDate:
+                    new Date().toISOString(),
+                loadedBy:
+                    loggedInUser
+                        ? loggedInUser.name
+                        : "Unknown"
+            }
+        );
+    });
+
+    await batch.commit();
+
+    await loadCarWashesFromFirestore();
+
+alert(
+    `${employeeName}'s outstanding car washes have been marked as loaded to payroll.`
+);
+
+} catch (error) {
+
+    console.error(
+        "Mark employee car washes as loaded error:",
+        error
+    );
+
+    alert(
+        "Unable to mark these car washes as loaded."
+    );
+
+    return;
+}
+
+}
+
+// =============================================
+// Mark All Car Washes As Loaded
+// =============================================
+
+async function markAllCarWashesAsLoaded() {
+
+    const selectedMonth =
+        carWashPayrollMonthInput.value;
+
+    if (!selectedMonth) {
+
+        alert(
+            "Please select a payroll month."
+        );
+
+        return;
+    }
+
+
+    const outstandingWashes =
+        carWashEntries.filter(carWash => {
+
+            const payrollPeriod =
+                carWash.payrollPeriod ||
+                getCarWashPayrollPeriod(
+                    carWash.washDate
+                );
+
+            return (
+                payrollPeriod ===
+                    selectedMonth
+                &&
+                !carWash.loadedToPayroll
+            );
+        });
+
+
+    if (outstandingWashes.length === 0) {
+
+        alert(
+            "There are no outstanding car washes for this payroll period."
+        );
+
+        return;
+    }
+
+
+    const outstandingAmount =
+        outstandingWashes.reduce(
+            (total, carWash) =>
+                total +
+                (Number(carWash.amount) || 0),
+            0
+        );
+
+
+    const confirmed =
+        confirm(
+            `Mark ALL outstanding car washes as loaded to payroll?\n\n` +
+            `Payroll Period: ${selectedMonth}\n` +
+            `Outstanding Washes: ${outstandingWashes.length}\n` +
+            `Outstanding Amount: R${outstandingAmount.toFixed(2)}\n\n` +
+            `This will mark every outstanding car wash in this payroll period as loaded.`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        const loggedInUser =
+            JSON.parse(
+                sessionStorage.getItem(
+                    "loggedInLeaveUser"
+                )
+            );
+
+
+        const batch =
+            db.batch();
+
+
+        outstandingWashes.forEach(carWash => {
+
+            const carWashRef =
+                db
+                    .collection("carWashes")
+                    .doc(String(carWash.id));
+
+
+            batch.update(
+                carWashRef,
+                {
+                    loadedToPayroll:
+                        true,
+
+                    loadedToPayrollDate:
+                        new Date().toISOString(),
+
+                    loadedBy:
+                        loggedInUser
+                            ? loggedInUser.name
+                            : "Unknown"
+                }
+            );
+        });
+
+
+        await batch.commit();
+
+
+        await loadCarWashesFromFirestore();
+
+
+        alert(
+            `All outstanding car washes for ${selectedMonth} have been marked as loaded to payroll.`
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Mark all car washes as loaded error:",
+            error
+        );
+
+
+        alert(
+            "Unable to mark all car washes as loaded."
         );
     }
 }
@@ -1675,6 +2750,133 @@ function handleEntryTypeChange() {
         arrivalGroup.style.opacity =
             "1";
     }
+}
+
+// =========================================
+// Save Car Wash
+// =========================================
+
+async function saveCarWash() {
+
+    const employeeName =
+        carWashEmployeeNameInput.value.trim();
+
+    const washDate =
+        carWashDateInput.value;
+
+    const vehicleType =
+        carWashVehicleTypeInput.value;
+
+    const amount =
+        Number(carWashAmountInput.value);
+
+    if (!employeeName) {
+
+        alert(
+            "Please enter the employee name."
+        );
+
+        return;
+    }
+
+    if (!washDate) {
+
+        alert(
+            "Please select the car wash date."
+        );
+
+        return;
+    }
+
+    if (!vehicleType) {
+
+        alert(
+            "Please select the vehicle type."
+        );
+
+        return;
+    }
+
+    if (
+        !amount ||
+        amount <= 0
+    ) {
+
+        alert(
+            "Please enter a valid car wash amount."
+        );
+
+        return;
+    }
+
+    const carWashEntry = {
+
+        id:
+            Date.now().toString(),
+
+        employeeName:
+            employeeName,
+
+        washDate:
+            washDate,
+
+        vehicleType:
+            vehicleType,
+
+        amount:
+            amount,
+
+            payrollPeriod:
+    getCarWashPayrollPeriod(
+        washDate
+    ),
+
+        loadedToPayroll:
+            false,
+
+        loadedToPayrollDate:
+            null,
+
+        createdAt:
+            new Date().toISOString()
+    };
+
+    try {
+
+    await db
+        .collection("carWashes")
+        .doc(String(carWashEntry.id))
+        .set(carWashEntry);
+
+        await loadCarWashesFromFirestore();
+
+    carWashEmployeeNameInput.value =
+        "";
+
+    carWashDateInput.value =
+        "";
+
+    carWashVehicleTypeInput.value =
+        "";
+
+    carWashAmountInput.value =
+        "";
+
+    alert(
+        "Car wash saved successfully."
+    );
+
+} catch (error) {
+
+    console.error(
+        "Save car wash error:",
+        error
+    );
+
+    alert(
+        "Unable to save the car wash. Please try again."
+    );
+}
 }
 
 
@@ -2946,6 +4148,30 @@ document.addEventListener(
     }
 );
 
+saveCarWashButton.addEventListener(
+    "click",
+    saveCarWash
+);
+
+carWashPayrollMonthInput.addEventListener(
+    "change",
+    renderCarWashPayrollSummary
+);
+
+carWashHistoryMonthInput.addEventListener(
+    "change",
+    function () {
+        renderCarWashHistory(
+            carWashEntries
+        );
+    }
+);
+
+markAllCarWashesLoadedButton.addEventListener(
+    "click",
+    markAllCarWashesAsLoaded
+);
+
 
 saveEntryButton.addEventListener(
     "click",
@@ -3005,6 +4231,83 @@ employeeSelect.addEventListener(
         renderEntries();
 
         updatePayrollSummary();
+    }
+);
+
+// =========================================
+// Main Navigation Switching
+// =========================================
+
+unpaidLeaveNavButton.addEventListener(
+    "click",
+    function () {
+
+        unpaidLeaveSection.style.display =
+            "block";
+
+        carWashSection.style.display =
+            "none";
+
+        unpaidLeaveNavButton.classList.add(
+            "active"
+        );
+
+        carWashNavButton.classList.remove(
+            "active"
+        );
+    }
+);
+
+
+carWashNavButton.addEventListener(
+    "click",
+    function () {
+
+        unpaidLeaveSection.style.display =
+            "none";
+
+        carWashSection.style.display =
+            "block";
+
+        unpaidLeaveNavButton.classList.remove(
+            "active"
+        );
+
+        carWashNavButton.classList.add(
+            "active"
+        );
+    }
+);
+
+// =========================================
+// Car Wash Vehicle Pricing
+// =========================================
+
+carWashVehicleTypeInput.addEventListener(
+    "change",
+    function () {
+
+        if (
+            carWashVehicleTypeInput.value ===
+            "small"
+        ) {
+
+            carWashAmountInput.value =
+                "80";
+
+        } else if (
+            carWashVehicleTypeInput.value ===
+            "large"
+        ) {
+
+            carWashAmountInput.value =
+                "100";
+
+        } else {
+
+            carWashAmountInput.value =
+                "";
+        }
     }
 );
 

@@ -60,6 +60,48 @@ body {
     margin: 0 auto;
 }
 
+/* =========================================
+   Main Navigation
+========================================= */
+
+.main-navigation {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 6px;
+    background: #e8edf3;
+    border-radius: 10px;
+    width: fit-content;
+}
+
+.main-navigation .nav-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.main-navigation .nav-button:hover {
+    background: #d8e1eb;
+    color: #163a63;
+}
+
+.main-navigation .nav-button.active {
+    background: #163a63;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+}
+
+.main-navigation .nav-button.active:hover {
+    background: #163a63;
+    color: #ffffff;
+}
+
 
 .page-header {
     margin-bottom: 25px;
@@ -708,6 +750,37 @@ tbody tr:nth-child(even):hover {
     opacity: 0.85;
 }
 
+/* =========================================
+   Car Wash Payroll Status
+========================================= */
+
+.payroll-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.payroll-outstanding {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffe69c;
+}
+
+.payroll-loaded {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.payroll-partial {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
 .history-delete-button {
     background: #dc3545;
     color: white;
@@ -721,4 +794,405 @@ tbody tr:nth-child(even):hover {
 
 .history-delete-button:hover {
     opacity: 0.85;
+}
+
+/* =========================================
+   Car Wash Section
+========================================= */
+
+.car-wash-section {
+    animation: carWashFadeIn 0.25s ease;
+}
+
+@keyframes carWashFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.car-wash-section > .card:first-child {
+    border-top: 4px solid #163a63;
+    padding: 28px;
+}
+
+.car-wash-section > .card:first-child .form-grid {
+    gap: 20px 24px;
+}
+
+.car-wash-section > .card:first-child label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.car-wash-section > .card:first-child input,
+.car-wash-section > .card:first-child select {
+    min-height: 44px;
+}
+
+.car-wash-payroll-summary {
+    margin-top: 28px;
+    padding: 24px;
+
+    background: #f8fafc;
+    border: 1px solid #dbe3ec;
+    border-radius: 12px;
+
+    box-shadow:
+        0 3px 10px rgba(15, 39, 71, 0.05);
+}
+
+.car-wash-payroll-summary .section-heading {
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+
+    border-bottom: 1px solid #dbe3ec;
+}
+
+.car-wash-payroll-summary .section-heading h2 {
+    margin-bottom: 5px;
+    font-size: 21px;
+    color: #163a63;
+}
+
+.car-wash-payroll-summary .section-heading p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.car-wash-payroll-summary > .form-group {
+    max-width: 280px;
+    margin-bottom: 12px;
+}
+
+.car-wash-payroll-summary > .form-group label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+#markAllCarWashesLoadedButton {
+    margin-top: 0;
+    margin-bottom: 22px;
+
+    padding: 10px 18px;
+
+    background: #163a63;
+    border-radius: 7px;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+#markAllCarWashesLoadedButton:hover {
+    background: #0f2d4d;
+}
+
+.car-wash-payroll-summary .table-wrapper {
+    border: 1px solid #dbe3ec;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+.car-wash-payroll-summary table {
+    background: #ffffff;
+}
+
+.car-wash-payroll-summary thead th {
+    padding: 14px 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.car-wash-payroll-summary tbody td {
+    padding: 14px 12px;
+    vertical-align: middle;
+}
+
+.car-wash-payroll-summary .grand-total-row {
+    background: #eef4fb;
+    border-top: 2px solid #163a63;
+}
+
+.car-wash-payroll-summary .grand-total-row td {
+    color: #163a63;
+    font-weight: 700;
+}
+
+.car-wash-history {
+    margin-top: 28px;
+    padding: 24px;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+
+    box-shadow:
+        0 3px 10px rgba(15, 39, 71, 0.04);
+}
+
+.car-wash-history .section-heading {
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.car-wash-history .section-heading h2 {
+    margin-bottom: 5px;
+    font-size: 20px;
+    color: #163a63;
+}
+
+.car-wash-history .section-heading p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.car-wash-history .table-wrapper {
+    border: 1px solid #dbe3ec;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+.car-wash-history table {
+    background: #ffffff;
+}
+
+.car-wash-history thead th {
+    padding: 14px 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.car-wash-history tbody td {
+    padding: 14px 12px;
+    vertical-align: middle;
+}
+
+.car-wash-history .history-edit-button,
+.car-wash-history .history-delete-button {
+    margin-top: 0;
+    padding: 7px 11px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    box-shadow: none;
+}
+
+.car-wash-history .history-delete-button {
+    margin-left: 6px;
+}
+
+.car-wash-history .history-edit-button:hover,
+.car-wash-history .history-delete-button:hover {
+    transform: none;
+}
+
+.car-wash-payroll-summary .history-edit-button {
+    margin-top: 0;
+    padding: 7px 11px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    box-shadow: none;
+    white-space: nowrap;
+}
+
+.car-wash-payroll-summary .history-edit-button:hover {
+    transform: none;
+}
+
+.car-wash-section .payroll-status {
+    min-width: 92px;
+    padding: 6px 11px;
+
+    text-align: center;
+    border-radius: 20px;
+
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.car-wash-page-header {
+    margin-bottom: 22px;
+    padding: 4px 2px;
+}
+
+.car-wash-page-header h1 {
+    font-size: 28px;
+    letter-spacing: -0.4px;
+}
+
+.car-wash-page-header p {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+#saveCarWashButton {
+    min-width: 160px;
+    margin-top: 22px;
+    padding: 11px 20px;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+#saveCarWashButton:hover {
+    transform: translateY(-1px);
+}
+
+#saveCarWashButton {
+    margin-bottom: 8px;
+}
+
+.car-wash-payroll-summary {
+    margin-top: 32px;
+}
+
+.car-wash-history-filter {
+    display: flex;
+    flex-direction: column;
+    min-width: 190px;
+}
+
+.car-wash-history-filter label {
+    margin-bottom: 6px;
+
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.car-wash-history-filter input {
+    padding: 9px 11px;
+
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.car-wash-history-filter input:focus {
+    outline: none;
+    border-color: #163a63;
+
+    box-shadow:
+        0 0 0 3px rgba(22, 58, 99, 0.10);
+}
+
+.car-wash-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+
+    margin-top: 18px;
+    margin-bottom: 20px;
+}
+
+.car-wash-summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    padding: 17px 18px;
+
+    background: #ffffff;
+    border: 1px solid #dbe3ec;
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 6px rgba(15, 39, 71, 0.04);
+}
+
+.car-wash-summary-card span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.car-wash-summary-card strong {
+    color: #163a63;
+    font-size: 23px;
+    font-weight: 700;
+}
+
+.car-wash-summary-card.outstanding-card {
+    background: #fffbeb;
+    border-color: #f6d98d;
+}
+
+.car-wash-summary-card.outstanding-card.clear-card {
+    background: #ecfdf5;
+    border-color: #a7d7c5;
+}
+
+.car-wash-summary-card.outstanding-card.clear-card span {
+    color: #166534;
+}
+
+.car-wash-summary-card.outstanding-card.clear-card strong {
+    color: #166534;
+}
+
+.car-wash-summary-card.outstanding-card span {
+    color: #856404;
+}
+
+.car-wash-summary-card.outstanding-card strong {
+    color: #856404;
+}
+
+@media (max-width: 900px) {
+
+    .car-wash-summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+
+    .car-wash-summary-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.car-wash-payroll-controls {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+
+    margin-bottom: 22px;
+}
+
+.car-wash-payroll-controls > .form-group {
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 0;
+}
+
+.car-wash-payroll-controls #markAllCarWashesLoadedButton {
+    margin: 0;
+    white-space: nowrap;
 }

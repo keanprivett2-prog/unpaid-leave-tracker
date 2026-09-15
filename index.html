@@ -111,9 +111,28 @@
 </header>
 
 <!-- =====================================
-     Dashboard Overview
+     Main Navigation
 ====================================== -->
 
+<nav class="main-navigation">
+
+    <button
+        type="button"
+        id="unpaidLeaveNavButton"
+        class="nav-button active"
+    >
+        Unpaid Leave
+    </button>
+
+    <button
+        type="button"
+        id="carWashNavButton"
+        class="nav-button"
+    >
+        Car Washes
+    </button>
+
+</nav>
 
 <!-- =====================================
      User Management
@@ -255,6 +274,15 @@
 </div>
 
 </section>
+
+<!-- =====================================
+     Unpaid Leave Management
+====================================== -->
+
+<section
+    id="unpaidLeaveSection"
+    class="unpaid-leave-section"
+>
 
 
         <!-- =====================================
@@ -734,6 +762,292 @@
             </div>
 
         </section>
+
+        <!-- End Unpaid Leave Management -->
+</section>
+
+        <!-- =====================================
+     Car Wash Management
+====================================== -->
+
+<section
+    class="car-wash-section"
+    id="carWashSection"
+    style="display: none;"
+>
+
+<div class="page-header car-wash-page-header">
+    <h1>Car Wash Management</h1>
+    <p>
+        Record employee car washes and manage payroll deductions.
+    </p>
+</div>
+
+    <section class="card">
+
+        <div class="section-heading">
+
+            <div>
+                <h2>Car Washes</h2>
+                <p>
+                    Record employee car washes and track payroll deductions.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="form-grid">
+
+    <div class="form-group">
+
+        <label for="carWashEmployeeName">
+            Employee Name
+        </label>
+
+        <input
+            type="text"
+            id="carWashEmployeeName"
+            placeholder="Enter employee name"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label for="carWashDate">
+            Wash Date
+        </label>
+
+        <input
+            type="date"
+            id="carWashDate"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label for="carWashVehicleType">
+            Vehicle Type
+        </label>
+
+        <select id="carWashVehicleType">
+
+            <option value="">
+                Select vehicle type
+            </option>
+
+            <option value="small">
+                Small Vehicle - R80
+            </option>
+
+            <option value="large">
+                SUV / Large Vehicle - R100
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label for="carWashAmount">
+            Wash Amount
+        </label>
+
+        <input
+            type="number"
+            id="carWashAmount"
+            min="0"
+            step="1"
+            placeholder="Enter amount"
+        >
+
+    </div>
+
+</div>
+
+
+<button
+    type="button"
+    id="saveCarWashButton"
+>
+    Save Car Wash
+</button>
+
+<!-- =====================================
+     Car Wash Payroll Summary
+====================================== -->
+
+<div class="car-wash-payroll-summary">
+
+    <div class="section-heading">
+
+        <div>
+            <h2>Car Wash Payroll Summary</h2>
+            <p>
+                View car washes assigned to a specific payroll period.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="car-wash-payroll-controls">
+
+    <div class="form-group">
+
+        <label for="carWashPayrollMonth">
+            Payroll Month
+        </label>
+
+        <input
+            type="month"
+            id="carWashPayrollMonth"
+        >
+
+    </div>
+
+    </div>
+
+    <div class="car-wash-summary-cards">
+
+    <div class="car-wash-summary-card">
+        <span>Total Washes</span>
+        <strong id="carWashTotalWashes">0</strong>
+    </div>
+
+    <div class="car-wash-summary-card outstanding-card">
+        <span>Outstanding Washes</span>
+        <strong id="carWashOutstandingWashes">0</strong>
+    </div>
+
+    <div class="car-wash-summary-card">
+        <span>Total Value</span>
+        <strong id="carWashTotalValue">R0.00</strong>
+    </div>
+
+    <div class="car-wash-summary-card outstanding-card">
+        <span>Outstanding Value</span>
+        <strong id="carWashOutstandingValue">R0.00</strong>
+    </div>
+
+</div>
+
+    <button
+    type="button"
+    id="markAllCarWashesLoadedButton"
+>
+    Mark All Outstanding as Loaded
+</button>
+
+
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+    <tr>
+        <th>Employee</th>
+<th>Number of Washes</th>
+<th>Outstanding Washes</th>
+<th>Total Amount</th>
+<th>Outstanding Amount</th>
+<th>Payroll Status</th>
+<th>Action</th>
+    </tr>
+</thead>
+
+<tbody id="carWashPayrollTableBody">
+
+    <tr>
+        <td
+            colspan="7"
+            class="empty-row"
+        >
+            No car washes for this payroll period.
+        </td>
+    </tr>
+
+</tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- =====================================
+     Car Wash History
+====================================== -->
+
+<div class="car-wash-history">
+
+   <div class="section-heading">
+
+    <div>
+        <h2>Car Wash History</h2>
+        <p>
+            View car washes and track which deductions have been loaded to payroll.
+        </p>
+    </div>
+
+    <div class="car-wash-history-filter">
+        <label for="carWashHistoryMonth">
+            History Month
+        </label>
+
+        <input
+            type="month"
+            id="carWashHistoryMonth"
+        >
+    </div>
+
+</div>
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Wash Date</th>
+                    <th>Employee</th>
+                    <th>Vehicle Type</th>
+                    <th>Amount</th>
+                    <th>Payroll Period</th>
+                    <th>Payroll Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="carWashTableBody">
+
+                <tr>
+                    <td
+                        colspan="7"
+                        class="empty-row"
+                    >
+                        No car washes recorded yet.
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+
+    </section>
+
+</section>
 
     </div>
 
