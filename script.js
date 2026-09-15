@@ -1303,7 +1303,7 @@ function closeEmployeeForm() {
 // Save Employee
 // =============================================
 
-function saveEmployee() {
+async function saveEmployee() {
 
     const name =
         employeeNameInput.value.trim();
@@ -1426,7 +1426,9 @@ function saveEmployee() {
     }
 
 
-    saveEmployees(employee);
+    try {
+
+    await saveEmployees(employee);
 
     renderEmployeeDropdown();
 
@@ -1437,11 +1439,25 @@ function saveEmployee() {
 
     renderEntries();
 
-updatePayrollSummary();
+    updatePayrollSummary();
 
-renderAllEmployeesPayrollSummary();
+    renderAllEmployeesPayrollSummary();
 
-alert("Employee saved successfully.");
+    alert(
+        "Employee saved successfully."
+    );
+
+} catch (error) {
+
+    console.error(
+        "Save employee error:",
+        error
+    );
+
+    alert(
+        "Unable to save the employee. Please try again."
+    );
+}
 }
 
 
@@ -1852,12 +1868,20 @@ async function saveEntry() {
     };
 
 
+    try {
+
+    await saveAttendanceEntries(
+        entry
+    );
+
     attendanceEntries.push(
         entry
     );
 
-    await saveAttendanceEntries(entry);
-
+    localStorage.setItem(
+        "unpaidLeaveEntries",
+        JSON.stringify(attendanceEntries)
+    );
 
     actualArrivalInput.value =
         "";
@@ -1865,16 +1889,27 @@ async function saveEntry() {
     notesInput.value =
         "";
 
-
     renderEntries();
 
-updatePayrollSummary();
+    updatePayrollSummary();
 
-renderAllEmployeesPayrollSummary();
+    renderAllEmployeesPayrollSummary();
 
-alert(
-    "Entry saved successfully."
-);
+    alert(
+        "Entry saved successfully."
+    );
+
+} catch (error) {
+
+    console.error(
+        "Save unpaid leave entry error:",
+        error
+    );
+
+    alert(
+        "Unable to save the entry. Please try again."
+    );
+}
 }
 
 
