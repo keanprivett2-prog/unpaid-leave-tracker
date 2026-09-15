@@ -2346,9 +2346,26 @@ async function updateEditedEntry() {
 
 async function deleteEntry(id) {
 
+    const entry =
+        attendanceEntries.find(
+            item =>
+                String(item.id) ===
+                String(id)
+        );
+
+    if (!entry) {
+
+        alert(
+            "Unable to find this entry."
+        );
+
+        return;
+    }
+
     const confirmed =
         confirm(
-            "Are you sure you want to delete this entry?"
+            `Delete unpaid leave entry for ${entry.employeeName} on ${formatDate(entry.date)}?\n\n` +
+            `This action cannot be undone.`
         );
 
     if (!confirmed) {
@@ -2933,6 +2950,14 @@ editEntryTypeInput.addEventListener(
 
             editEntryArrivalInput.readOnly =
                 false;
+
+            if (
+                !editEntryArrivalInput.value
+            ) {
+
+                editEntryArrivalInput.value =
+                    editEntryArrivalInput.dataset.originalArrival || "";
+            }
         }
     }
 );
