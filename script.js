@@ -154,6 +154,9 @@ const carWashOutstandingValue =
         "markAllCarWashesLoadedButton"
     );
 
+    const printCarWashPayrollButton =
+    document.getElementById("printCarWashPayrollButton");
+
 const daysLateElement =
     document.getElementById("daysLate");
 
@@ -2288,6 +2291,439 @@ async function markAllCarWashesAsLoaded() {
     }
 }
 
+// =============================================
+// Print Car Wash Payroll Report
+// =============================================
+
+function printCarWashPayrollReport() {
+
+    const selectedMonth =
+        carWashPayrollMonthInput.value;
+
+    if (!selectedMonth) {
+
+        alert(
+            "Please select a payroll month."
+        );
+
+        return;
+    }
+
+    const payrollEntries =
+    carWashEntries.filter(carWash => {
+
+        const payrollPeriod =
+            carWash.payrollPeriod ||
+            getCarWashPayrollPeriod(
+                carWash.washDate
+            );
+
+        return payrollPeriod === selectedMonth;
+    });
+
+    if (payrollEntries.length === 0) {
+
+    alert(
+        "There are no car washes for the selected payroll period."
+    );
+
+    return;
+}
+
+const groupedEmployees = {};
+
+payrollEntries.forEach(carWash => {
+
+    const employeeName =
+        carWash.employeeName.trim();
+
+    const employeeKey =
+        employeeName.toLowerCase();
+
+    if (!groupedEmployees[employeeKey]) {
+
+        groupedEmployees[employeeKey] = {
+            employeeName: employeeName,
+            washes: []
+        };
+    }
+
+    groupedEmployees[employeeKey].washes.push(
+        carWash
+    );
+});
+
+const reportEmployees =
+    Object.values(groupedEmployees).map(employee => {
+
+        const totalWashes =
+            employee.washes.length;
+
+        const outstandingWashes =
+            employee.washes.filter(
+                carWash =>
+                    !carWash.loadedToPayroll
+            );
+
+        const totalAmount =
+            employee.washes.reduce(
+                (total, carWash) =>
+                    total +
+                    (Number(carWash.amount) || 0),
+                0
+            );
+
+        const outstandingAmount =
+            outstandingWashes.reduce(
+                (total, carWash) =>
+                    total +
+                    (Number(carWash.amount) || 0),
+                0
+            );
+
+            let payrollStatus = "Outstanding";
+
+if (outstandingWashes.length === 0) {
+
+    payrollStatus = "Loaded";
+
+} else if (
+    outstandingWashes.length < totalWashes
+) {
+
+    payrollStatus = "Partially Loaded";
+}
+
+        return {
+            employeeName:
+                employee.employeeName,
+
+            totalWashes:
+                totalWashes,
+
+            outstandingWashes:
+                outstandingWashes.length,
+
+            totalAmount:
+                totalAmount,
+
+            outstandingAmount:
+    outstandingAmount,
+
+payrollStatus:
+    payrollStatus
+
+        };
+    });
+
+    const grandTotalWashes =
+    reportEmployees.reduce(
+        (total, employee) =>
+            total + employee.totalWashes,
+        0
+    );
+
+const grandOutstandingWashes =
+    reportEmployees.reduce(
+        (total, employee) =>
+            total + employee.outstandingWashes,
+        0
+    );
+
+const grandTotalAmount =
+    reportEmployees.reduce(
+        (total, employee) =>
+            total + employee.totalAmount,
+        0
+    );
+
+const grandOutstandingAmount =
+    reportEmployees.reduce(
+        (total, employee) =>
+            total + employee.outstandingAmount,
+        0
+    );
+
+    const payrollMonthName =
+    new Date(
+        `${selectedMonth}-01T00:00:00`
+    ).toLocaleDateString(
+        "en-ZA",
+        {
+            month: "long",
+            year: "numeric"
+        }
+    );
+
+    const reportGeneratedDate =
+    new Date().toLocaleString(
+        "en-ZA",
+        {
+            dateStyle: "long",
+            timeStyle: "short"
+        }
+    );
+
+    const reportRows =
+    reportEmployees.map(employee => `
+        <tr>
+            <td>${employee.employeeName}</td>
+            <td>${employee.totalWashes}</td>
+            <td>${employee.outstandingWashes}</td>
+            <td>R${employee.totalAmount.toFixed(2)}</td>
+            <td>R${employee.outstandingAmount.toFixed(2)}</td>
+            <td>${employee.payrollStatus}</td>
+        </tr>
+    `).join("");
+
+    const printWindow =
+    window.open(
+        "",
+        "_blank"
+    );
+
+if (!printWindow) {
+
+    alert(
+        "Unable to open the payroll report. Please allow pop-ups for this website."
+    );
+
+    return;
+}
+
+printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>
+        Car Wash Payroll Report - ${payrollMonthName}
+    </title>
+
+    <style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 35px;
+        font-family: Arial, sans-serif;
+        color: #1f2937;
+        background: #ffffff;
+    }
+
+    h1 {
+        margin: 0;
+        color: #163a63;
+        font-size: 28px;
+    }
+
+    h2 {
+        margin: 6px 0 28px;
+        color: #64748b;
+        font-size: 17px;
+        font-weight: 500;
+    }
+
+    .report-generated {
+    margin: -18px 0 24px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.report-actions {
+    margin-bottom: 20px;
+}
+
+.report-actions button {
+    padding: 10px 16px;
+    background: #163a63;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.report-actions button:hover {
+    background: #0f2d4d;
+}
+
+.report-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.report-summary-card {
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid #dbe3ec;
+    border-radius: 8px;
+}
+
+.report-summary-card span {
+    display: block;
+    margin-bottom: 6px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.report-summary-card strong {
+    display: block;
+    color: #163a63;
+    font-size: 18px;
+}
+
+@media print {
+
+@page {
+    size: A4 landscape;
+    margin: 12mm;
+}
+
+    .report-actions {
+        display: none;
+    }
+
+    body {
+        padding: 0;
+    }
+}
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    th {
+        padding: 11px 10px;
+        background: #163a63;
+        color: #ffffff;
+        text-align: left;
+        border: 1px solid #163a63;
+    }
+
+    td {
+        padding: 11px 10px;
+        border: 1px solid #dbe3ec;
+    }
+
+    tbody tr:last-child {
+        background: #eef4fb;
+        color: #163a63;
+    }
+
+</style>
+
+</head>
+
+<body>
+
+    <h1>
+        Car Wash Payroll Report
+    </h1>
+
+    <h2>
+        ${payrollMonthName}
+    </h2>
+
+    <p class="report-generated">
+    Generated: ${reportGeneratedDate}
+</p>
+
+<div class="report-actions">
+    <button
+        type="button"
+        onclick="window.print()"
+    >
+        Print / Save as PDF
+    </button>
+</div>
+
+<div class="report-summary">
+
+    <div class="report-summary-card">
+        <span>Total Washes</span>
+        <strong>${grandTotalWashes}</strong>
+    </div>
+
+    <div class="report-summary-card">
+        <span>Outstanding Washes</span>
+        <strong>${grandOutstandingWashes}</strong>
+    </div>
+
+    <div class="report-summary-card">
+        <span>Total Value</span>
+        <strong>R${grandTotalAmount.toFixed(2)}</strong>
+    </div>
+
+    <div class="report-summary-card">
+        <span>Outstanding Value</span>
+        <strong>R${grandOutstandingAmount.toFixed(2)}</strong>
+    </div>
+
+</div>
+
+    <table>
+
+    <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Number of Washes</th>
+            <th>Outstanding Washes</th>
+            <th>Total Amount</th>
+            <th>Outstanding Amount</th>
+            <th>Payroll Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        ${reportRows}
+
+        <tr>
+            <td>
+                <strong>Grand Total</strong>
+            </td>
+
+            <td>
+                <strong>${grandTotalWashes}</strong>
+            </td>
+
+            <td>
+                <strong>${grandOutstandingWashes}</strong>
+            </td>
+
+            <td>
+                <strong>R${grandTotalAmount.toFixed(2)}</strong>
+            </td>
+
+            <td>
+                <strong>R${grandOutstandingAmount.toFixed(2)}</strong>
+            </td>
+
+            <td>
+                -
+            </td>
+        </tr>
+
+    </tbody>
+
+</table>
+
+</body>
+</html>
+`);
+
+}
+
 
 // =============================================
 // Render Employee Dropdown
@@ -4242,6 +4678,13 @@ carWashHistorySearchInput.addEventListener(
 markAllCarWashesLoadedButton.addEventListener(
     "click",
     markAllCarWashesAsLoaded
+);
+
+printCarWashPayrollButton.addEventListener(
+    "click",
+    function () {
+        printCarWashPayrollReport();
+    }
 );
 
 
