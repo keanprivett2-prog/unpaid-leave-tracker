@@ -1070,8 +1070,9 @@ tbody tr:nth-child(even):hover {
 
 .car-wash-history-filter {
     display: flex;
-    flex-direction: column;
-    min-width: 190px;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 14px;
 }
 
 .car-wash-history-filter label {
@@ -1195,4 +1196,35 @@ tbody tr:nth-child(even):hover {
 .car-wash-payroll-controls #markAllCarWashesLoadedButton {
     margin: 0;
     white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+
+    .car-wash-payroll-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .car-wash-payroll-controls > .form-group {
+        max-width: 100%;
+    }
+
+    .car-wash-payroll-controls #markAllCarWashesLoadedButton {
+        width: 100%;
+    }
+}
+
+.car-wash-history-summary {
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #dbe3ec;
+    border-left: 4px solid #163a63;
+    border-radius: 8px;
+}
+
+.car-wash-history-summary span {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
 }

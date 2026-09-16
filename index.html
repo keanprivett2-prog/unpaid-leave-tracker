@@ -910,9 +910,19 @@
 
     </div>
 
-    </div>
+    
+        <button
+    type="button"
+    id="markAllCarWashesLoadedButton"
+>
+    Mark All Outstanding as Loaded
+</button>
 
-    <div class="car-wash-summary-cards">
+
+
+</div>
+
+<div class="car-wash-summary-cards">
 
     <div class="car-wash-summary-card">
         <span>Total Washes</span>
@@ -935,15 +945,6 @@
     </div>
 
 </div>
-
-    <button
-    type="button"
-    id="markAllCarWashesLoadedButton"
->
-    Mark All Outstanding as Loaded
-</button>
-
-
 
     <div class="table-wrapper">
 
@@ -996,16 +997,40 @@
     </div>
 
     <div class="car-wash-history-filter">
-        <label for="carWashHistoryMonth">
-            History Month
-        </label>
+        <div class="car-wash-history-filter-group">
 
-        <input
-            type="month"
-            id="carWashHistoryMonth"
-        >
+    <label for="carWashHistoryMonth">
+        History Month
+    </label>
+
+    <input
+        type="month"
+        id="carWashHistoryMonth"
+    >
+
+</div>
+
+        <div class="car-wash-history-filter-group">
+
+    <label for="carWashHistorySearch">
+        Search Employee
+    </label>
+
+    <input
+        type="text"
+        id="carWashHistorySearch"
+        placeholder="Enter employee name"
+    >
+
+</div>
     </div>
 
+</div>
+
+<div class="car-wash-history-summary">
+    <span id="carWashHistorySummaryText">
+        No car wash history for this month.
+    </span>
 </div>
 
     <div class="table-wrapper">

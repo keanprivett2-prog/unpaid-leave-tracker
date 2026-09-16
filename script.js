@@ -128,6 +128,12 @@ const saveCarWashButton =
     const carWashHistoryMonthInput =
     document.getElementById("carWashHistoryMonth");
 
+    const carWashHistorySearchInput =
+    document.getElementById("carWashHistorySearch");
+
+    const carWashHistorySummaryText =
+    document.getElementById("carWashHistorySummaryText");
+
 const carWashPayrollTableBody =
     document.getElementById("carWashPayrollTableBody");
 
@@ -1630,7 +1636,64 @@ if (selectedHistoryMonth) {
         );
 }
 
+const historySearch =
+    carWashHistorySearchInput.value
+        .trim()
+        .toLowerCase();
+
+if (historySearch) {
+
+    carWashes =
+        carWashes.filter(carWash =>
+            carWash.employeeName &&
+            carWash.employeeName
+                .toLowerCase()
+                .includes(historySearch)
+        );
+}
+
+const totalHistoryWashes =
+    carWashes.length;
+
+const loadedHistoryWashes =
+    carWashes.filter(
+        carWash => carWash.loadedToPayroll
+    ).length;
+
+const outstandingHistoryWashes =
+    totalHistoryWashes - loadedHistoryWashes;
+
+const totalHistoryAmount =
+    carWashes.reduce(
+        (total, carWash) =>
+            total + Number(carWash.amount || 0),
+        0
+    );
+
+    const historyMonthName =
+    selectedHistoryMonth
+        ? new Date(
+            `${selectedHistoryMonth}-01T00:00:00`
+        ).toLocaleDateString(
+            "en-ZA",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        )
+        : "";
+
+    carWashHistorySummaryText.textContent =
+    `${historyMonthName} • ` +
+    `${totalHistoryWashes} wash${totalHistoryWashes === 1 ? "" : "es"} • ` +
+    `R${totalHistoryAmount.toFixed(2)} total • ` +
+    `${loadedHistoryWashes} loaded • ` +
+    `${outstandingHistoryWashes} outstanding`;
+
     if (carWashes.length === 0) {
+
+        carWashHistorySummaryText.textContent =
+    "No car wash history for this month.";
 
         carWashTableBody.innerHTML = `
             <tr>
@@ -4160,6 +4223,15 @@ carWashPayrollMonthInput.addEventListener(
 
 carWashHistoryMonthInput.addEventListener(
     "change",
+    function () {
+        renderCarWashHistory(
+            carWashEntries
+        );
+    }
+);
+
+carWashHistorySearchInput.addEventListener(
+    "input",
     function () {
         renderCarWashHistory(
             carWashEntries
