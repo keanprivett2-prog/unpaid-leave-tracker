@@ -186,6 +186,11 @@ const attendanceTableBody =
         "allEmployeesPayrollPeriod"
     );
 
+    const markAllUnpaidLeaveLoadedButton =
+    document.getElementById(
+        "markAllUnpaidLeaveLoadedButton"
+    );
+
     const printPayrollButton =
     document.getElementById("printPayrollButton");
 
@@ -1264,6 +1269,41 @@ function getCarWashPayrollPeriod(washDate) {
         `${year}-` +
         `${String(month + 1).padStart(2, "0")}`
     );
+}
+
+// =============================================
+// Get Unpaid Leave Payroll Period
+// Payroll cutoff: 22nd of each month
+// =============================================
+
+function getUnpaidLeavePayrollPeriod(entryDate) {
+
+    const date =
+        new Date(`${entryDate}T00:00:00`);
+
+    let year =
+        date.getFullYear();
+
+    let month =
+        date.getMonth();
+
+    const day =
+        date.getDate();
+
+
+    if (day > 22) {
+
+        month++;
+
+        if (month > 11) {
+
+            month = 0;
+            year++;
+        }
+    }
+
+
+    return `${year}-${String(month + 1).padStart(2, "0")}`;
 }
 
 // =============================================
@@ -3540,10 +3580,13 @@ async function saveEntry() {
             employee.employeeNumber,
 
         date:
-            date,
+    date,
 
-        entryType:
-            entryType,
+payrollPeriod:
+    getUnpaidLeavePayrollPeriod(date),
+
+entryType:
+    entryType,
 
         expectedStart:
             employee.startTime,
@@ -3561,10 +3604,19 @@ async function saveEntry() {
             paidDayMinutes,
 
         unpaidDays:
-            unpaidDays,
+    unpaidDays,
 
-        notes:
-            notesInput.value.trim()
+loadedToPayroll:
+    false,
+
+loadedToPayrollDate:
+    null,
+
+loadedBy:
+    null,
+
+notes:
+    notesInput.value.trim()
 
     };
 
@@ -3780,6 +3832,20 @@ allEmployeesPayrollPeriod.textContent =
     Edit
 </button>
 
+${
+    !entry.loadedToPayroll
+        ? `
+            <button
+                type="button"
+                class="history-edit-button"
+                onclick="changeUnpaidLeavePayrollPeriod('${entry.id}')"
+            >
+                Change Payroll Period
+            </button>
+        `
+        : ""
+}
+
 <button
     type="button"
     class="history-delete-button"
@@ -3796,6 +3862,100 @@ allEmployeesPayrollPeriod.textContent =
                 .appendChild(row);
         }
     );
+}
+
+// =============================================
+// Change Unpaid Leave Payroll Period
+// =============================================
+
+async function changeUnpaidLeavePayrollPeriod(id) {
+
+    const entry =
+        attendanceEntries.find(
+            item =>
+                String(item.id) ===
+                String(id)
+        );
+
+
+    if (!entry) {
+
+        alert(
+            "Unable to find this unpaid leave entry."
+        );
+
+        return;
+    }
+
+
+    const currentPayrollPeriod =
+        entry.payrollPeriod ||
+        getUnpaidLeavePayrollPeriod(
+            entry.date
+        );
+
+
+    const newPayrollPeriod =
+        prompt(
+            "Enter the payroll period in YYYY-MM format:",
+            currentPayrollPeriod
+        );
+
+
+    if (newPayrollPeriod === null) {
+        return;
+    }
+
+
+    const trimmedPayrollPeriod =
+        newPayrollPeriod.trim();
+
+
+    if (
+        !/^\d{4}-(0[1-9]|1[0-2])$/.test(
+            trimmedPayrollPeriod
+        )
+    ) {
+
+        alert(
+            "Please enter a valid payroll period in YYYY-MM format."
+        );
+
+        return;
+    }
+
+
+    try {
+
+        await db
+            .collection("unpaidLeaveEntries")
+            .doc(String(entry.id))
+            .update({
+                payrollPeriod:
+                    trimmedPayrollPeriod
+            });
+
+
+        await loadAttendanceEntriesFromFirestore();
+
+
+        alert(
+            `Payroll period changed to ${trimmedPayrollPeriod}.`
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Change unpaid leave payroll period error:",
+            error
+        );
+
+
+        alert(
+            "Unable to change the payroll period."
+        );
+    }
 }
 
 function editEntry(id) {
@@ -4015,6 +4175,14 @@ async function updateEditedEntry() {
         actualArrival = "";
     }
 
+    if (newDate !== entry.date) {
+
+    entry.payrollPeriod =
+        getUnpaidLeavePayrollPeriod(
+            newDate
+        );
+}
+
     entry.date =
         newDate;
 
@@ -4186,17 +4354,20 @@ function updatePayrollSummary() {
 
 
     const filteredEntries =
-        attendanceEntries.filter(
-            entry =>
-                String(
-                    entry.employeeId
-                ) ===
-                String(employee.id)
-                &&
-                entry.date.startsWith(
-                    selectedMonth
+    attendanceEntries.filter(
+        entry =>
+            String(
+                entry.employeeId
+            ) ===
+            String(employee.id)
+            &&
+            (
+                entry.payrollPeriod ||
+                getUnpaidLeavePayrollPeriod(
+                    entry.date
                 )
-        );
+            ) === selectedMonth
+    );
 
 
     let daysLate = 0;
@@ -4304,7 +4475,7 @@ function renderAllEmployeesPayrollSummary() {
 
         allEmployeesSummaryBody.innerHTML = `
             <tr>
-                <td colspan="7" class="empty-row">
+                <td colspan="9" class="empty-row">
                     No employees added yet.
                 </td>
             </tr>
@@ -4325,14 +4496,37 @@ let grandUnpaidMinutes = 0;
     employees.forEach(employee => {
 
         const employeeEntries =
-            attendanceEntries.filter(entry =>
-                String(entry.employeeId) ===
-                    String(employee.id)
-                &&
-                entry.date.startsWith(
-                    selectedMonth
-                )
-            );
+    attendanceEntries.filter(entry =>
+        String(entry.employeeId) ===
+            String(employee.id)
+        &&
+        (
+            entry.payrollPeriod ||
+            getUnpaidLeavePayrollPeriod(
+                entry.date
+            )
+        ) === selectedMonth
+    );
+
+            const loadedEntries =
+    employeeEntries.filter(
+        entry => entry.loadedToPayroll
+    );
+
+const outstandingEntries =
+    employeeEntries.filter(
+        entry => !entry.loadedToPayroll
+    );
+
+const payrollStatus =
+    employeeEntries.length === 0
+        ? "No Entries"
+        : loadedEntries.length === 0
+            ? "Outstanding"
+            : loadedEntries.length ===
+              employeeEntries.length
+                ? "Loaded"
+                : "Partially Loaded";
 
 
         let daysLate = 0;
@@ -4423,10 +4617,46 @@ grandUnpaidMinutes +=
             </td>
 
             <td>
-                ${unpaidDays.toFixed(2)} days
-            </td>
+    ${unpaidDays.toFixed(2)} days
+</td>
 
-        `;
+<td>
+    <span
+        class="payroll-status ${
+            payrollStatus === "Loaded"
+                ? "payroll-loaded"
+                : payrollStatus === "Partially Loaded"
+                    ? "payroll-partial"
+                    : payrollStatus === "No Entries"
+                        ? ""
+                        : "payroll-outstanding"
+        }"
+    >
+    ${payrollStatus}
+</span>
+</td>
+
+<td>
+    ${
+        outstandingEntries.length > 0
+            ? `
+                <button
+                    type="button"
+                    class="history-edit-button"
+                    onclick="markEmployeeUnpaidLeaveAsLoaded('${employee.id}')"
+                >
+                    ${
+                        loadedEntries.length > 0
+                            ? "Mark Outstanding as Loaded"
+                            : "Mark as Loaded"
+                    }
+                </button>
+            `
+            : "-"
+    }
+</td>
+
+`;
 
 
         allEmployeesSummaryBody
@@ -4465,14 +4695,300 @@ totalRow.innerHTML = `
     </td>
 
     <td>
-        <strong>See individual totals</strong>
-    </td>
+    <strong>See individual totals</strong>
+</td>
+
+<td>
+    -
+</td>
+
+<td>
+    -
+</td>
 
 `;
 
 
 allEmployeesSummaryBody
     .appendChild(totalRow);
+}
+
+// =============================================
+// Mark Employee Unpaid Leave As Loaded
+// =============================================
+
+async function markEmployeeUnpaidLeaveAsLoaded(
+    employeeId
+) {
+
+    const selectedMonth =
+        monthFilterInput.value;
+
+    if (!selectedMonth) {
+
+        alert(
+            "Please select a payroll month."
+        );
+
+        return;
+    }
+
+
+    const employee =
+        employees.find(
+            employee =>
+                String(employee.id) ===
+                String(employeeId)
+        );
+
+
+    if (!employee) {
+
+        alert(
+            "Unable to find this employee."
+        );
+
+        return;
+    }
+
+
+    const outstandingEntries =
+        attendanceEntries.filter(entry =>
+            String(entry.employeeId) ===
+                String(employeeId)
+            &&
+            entry.date &&
+(
+    entry.payrollPeriod ||
+    getUnpaidLeavePayrollPeriod(
+        entry.date
+    )
+) === selectedMonth
+&&
+!entry.loadedToPayroll
+        );
+
+
+    if (outstandingEntries.length === 0) {
+
+        alert(
+            "There are no outstanding unpaid leave entries for this employee."
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            `Mark this employee's unpaid leave as loaded to payroll?\n\n` +
+            `Employee: ${employee.name}\n` +
+            `Payroll Period: ${selectedMonth}\n` +
+            `Outstanding Entries: ${outstandingEntries.length}`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        const loggedInUser =
+            JSON.parse(
+                sessionStorage.getItem(
+                    "loggedInLeaveUser"
+                )
+            );
+
+
+        const batch =
+            db.batch();
+
+        const loadedDate =
+            new Date().toISOString();
+
+
+        outstandingEntries.forEach(entry => {
+
+            const entryRef =
+                db
+                    .collection(
+                        "unpaidLeaveEntries"
+                    )
+                    .doc(
+                        String(entry.id)
+                    );
+
+
+            batch.update(
+                entryRef,
+                {
+                    loadedToPayroll: true,
+
+                    loadedToPayrollDate:
+                        loadedDate,
+
+                    loadedBy:
+                        loggedInUser
+                            ? loggedInUser.name
+                            : "Unknown"
+                }
+            );
+        });
+
+
+        await batch.commit();
+
+        await loadAttendanceEntriesFromFirestore();
+
+
+        alert(
+            `${employee.name}'s outstanding unpaid leave has been marked as loaded to payroll.`
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Mark employee unpaid leave as loaded error:",
+            error
+        );
+
+
+        alert(
+            "Unable to mark this unpaid leave as loaded."
+        );
+    }
+}
+
+// =============================================
+// Mark All Unpaid Leave As Loaded
+// =============================================
+
+async function markAllUnpaidLeaveAsLoaded() {
+
+    const selectedMonth =
+        monthFilterInput.value;
+
+
+    if (!selectedMonth) {
+
+        alert(
+            "Please select a payroll month."
+        );
+
+        return;
+    }
+
+
+    const outstandingEntries =
+        attendanceEntries.filter(entry =>
+            entry.date &&
+(
+    entry.payrollPeriod ||
+    getUnpaidLeavePayrollPeriod(
+        entry.date
+    )
+) === selectedMonth
+&&
+!entry.loadedToPayroll
+        );
+
+
+    if (outstandingEntries.length === 0) {
+
+        alert(
+            "There are no outstanding unpaid leave entries for this payroll period."
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            `Mark ALL outstanding unpaid leave as loaded to payroll?\n\n` +
+            `Payroll Period: ${selectedMonth}\n` +
+            `Outstanding Entries: ${outstandingEntries.length}\n\n` +
+            `This will mark every outstanding unpaid leave entry in this payroll period as loaded.`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        const loggedInUser =
+            JSON.parse(
+                sessionStorage.getItem(
+                    "loggedInLeaveUser"
+                )
+            );
+
+
+        const batch =
+            db.batch();
+
+        const loadedDate =
+            new Date().toISOString();
+
+
+        outstandingEntries.forEach(entry => {
+
+            const entryRef =
+                db
+                    .collection(
+                        "unpaidLeaveEntries"
+                    )
+                    .doc(
+                        String(entry.id)
+                    );
+
+
+            batch.update(
+                entryRef,
+                {
+                    loadedToPayroll: true,
+
+                    loadedToPayrollDate:
+                        loadedDate,
+
+                    loadedBy:
+                        loggedInUser
+                            ? loggedInUser.name
+                            : "Unknown"
+                }
+            );
+        });
+
+
+        await batch.commit();
+
+        await loadAttendanceEntriesFromFirestore();
+
+
+        alert(
+            `All outstanding unpaid leave for ${selectedMonth} has been marked as loaded to payroll.`
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Mark all unpaid leave as loaded error:",
+            error
+        );
+
+
+        alert(
+            "Unable to mark all unpaid leave as loaded."
+        );
+    }
 }
 
 // =============================================
@@ -4691,6 +5207,11 @@ printCarWashPayrollButton.addEventListener(
 saveEntryButton.addEventListener(
     "click",
     saveEntry
+);
+
+markAllUnpaidLeaveLoadedButton.addEventListener(
+    "click",
+    markAllUnpaidLeaveAsLoaded
 );
 
 printPayrollButton.addEventListener(

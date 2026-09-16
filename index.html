@@ -676,6 +676,13 @@
     </div>
 
     <button
+    type="button"
+    id="markAllUnpaidLeaveLoadedButton"
+>
+    Mark All Outstanding as Loaded
+</button>
+
+    <button
         type="button"
         id="printPayrollButton"
     >
@@ -697,14 +704,16 @@
                     <th>Late Time</th>
                     <th>Full Unpaid Days</th>
                     <th>Total Unpaid Hours</th>
-                    <th>Unpaid Leave</th>
+<th>Unpaid Leave</th>
+<th>Payroll Status</th>
+<th>Action</th>
                 </tr>
             </thead>
 
             <tbody id="allEmployeesSummaryBody">
 
                 <tr>
-                    <td colspan="7" class="empty-row">
+                    <td colspan="9" class="empty-row">
                         No payroll data for this month.
                     </td>
                 </tr>
