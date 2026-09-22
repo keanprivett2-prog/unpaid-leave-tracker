@@ -4695,7 +4695,7 @@ totalRow.innerHTML = `
     </td>
 
     <td>
-    <strong>See individual totals</strong>
+    
 </td>
 
 <td>
